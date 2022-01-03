@@ -88,4 +88,38 @@ app.get('/tasks/:id', async (req, res) => {
   }
 })
 
+// updatting a user
+app.patch('/users/:id', async (req, res) => {
+  // pulling up the id
+  const _id = req.params.id
+  // pulling up the fields that want to update
+  const { name, email, password, age } = req.body
+  // checking if the id is a valid id
+  if (!mongoose.isValidObjectId(_id)) return res.status(400).send({ err: `invalid id ${_id}` })
+
+  try {
+    // updating the user with findByIdAndUpdate method
+    const update_user = await User.findByIdAndUpdate({ _id }, { name, email, password, age }, { new: true })
+    // checking if the update_user is not exist
+    if (!update_user) return res.status(400).send({ err: `invalid id ${_id}` })
+    // saving the update_user to database
+    await update_user.save()
+    res.status(200).send(update_user)
+  } catch (e) {
+    res.status(500).send(e)
+  }
+})
+
+// deletting user
+app.delete('/users/:id', async (req, res) => {
+  const _id = req.params.id
+  if (!mongoose.isValidObjectId(_id)) return res.status(400).send({ err: `invalid id ${_id}` })
+  try {
+    const delete_user = await User.findByIdAndDelete({ _id })
+    res.status(204).send({ msg: `The ${delete_user} with id ${_id} has been deleted from the database` })
+  } catch (e) {
+    res.status(500).send(e)
+  }
+})
+
 app.listen(port, () => console.log(`Server is up on port ${port}`))
