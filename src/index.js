@@ -90,16 +90,24 @@ app.get('/tasks/:id', async (req, res) => {
 
 // updatting a user
 app.patch('/users/:id', async (req, res) => {
-  // pulling up the id
+  // pulling out the id
   const _id = req.params.id
-  // pulling up the fields that want to update
-  const { name, email, password, age } = req.body
   // checking if the id is a valid id
-  if (!mongoose.isValidObjectId(_id)) return res.status(400).send({ err: `invalid id ${_id}` })
+  if (!mongoose.isValidObjectId(_id)) return res.status(400).send({ err: `invalid id: [${_id}]` })
+
+  // pulling out the keys
+  const updates = Object.keys(req.body)
+  // fields that allows to updates
+  const update_fields = ['name', 'email', 'password', 'age']
+  // will return True if everything went right and False if something went wrong
+  const validate_update = updates.every(update => update_fields.includes(update))
+  console.log(validate_update)
+
+  if (!validate_update) return res.status(400).send({ msg: 'Invalid update' })
 
   try {
     // updating the user with findByIdAndUpdate method
-    const update_user = await User.findByIdAndUpdate({ _id }, { name, email, password, age }, { new: true })
+    const update_user = await User.findByIdAndUpdate({ _id }, req.body, { new: true })
     // checking if the update_user is not exist
     if (!update_user) return res.status(400).send({ err: `invalid id ${_id}` })
     // saving the update_user to database
