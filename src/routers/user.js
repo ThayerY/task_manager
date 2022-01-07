@@ -1,5 +1,6 @@
 const express = require('express')
 const router = new express.Router()
+const mongoose = require('mongoose')
 const User = require('../models/user')
 
 // creating a user
@@ -57,13 +58,13 @@ router.patch('/users/:id', async (req, res) => {
   if (!validate_update) return res.status(400).send({ msg: 'Invalid update' })
 
   try {
-    // updating the user with findByIdAndUpdate method
-    const update_user = await User.findByIdAndUpdate({ _id }, req.body, { new: true })
-    // checking if the update_user is not exist
-    if (!update_user) return res.status(400).send({ err: `invalid Update` })
-    // saving the update_user to database
-    await update_user.save()
-    res.status(200).send(update_user)
+    const user = await User.findById(req.params.id)
+    updates.forEach(update => user[update] = req.body[update])
+
+    if (!user) return res.status(400).send({ err: `invalid Update` })
+    // saving the user to database
+    await user.save()
+    res.status(200).send(user)
   } catch (e) {
     res.status(500).send(e)
   }

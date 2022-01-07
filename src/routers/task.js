@@ -1,5 +1,6 @@
 const express = require('express')
 const router = new express.Router()
+const mongoose = require('mongoose')
 const Task = require('../models/task')
 
 // creating a Task
@@ -56,13 +57,15 @@ router.patch('/tasks/:id', async (req, res) => {
   if (!validate_update) return res.status(400).send({ msg: 'Invalid Update' })
 
   try {
-    // updating the user with findByIdAndUpdate method
-    const update_task = await Task.findByIdAndUpdate({ _id }, req.body, { new: true })
-    // checking if the update_task is true
-    if (!update_task) return res.status(400).send({ msg: 'Invalid Update' })
+    // pulling out the id
+    const task = await Task.findById(req.params.id)
+    // iderate over the updates keys
+    updates.forEach(update => task[update] = req.body[update])
+    // checking if the task is true
+    if (!task) return res.status(400).send({ msg: 'Invalid Update' })
     // if everything went right then we gunna save the update task
-    const save_update_task = await update_task.save()
-    res.status(200).send(save_update_task)
+    const save_task = await task.save()
+    res.status(200).send(save_task)
   } catch (e) {
     res.status(500).send(e)
   }
