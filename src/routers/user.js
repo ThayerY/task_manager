@@ -4,11 +4,15 @@ const User = require('../models/user')
 
 // creating a user
 router.post('/users', async (req, res) => {
+  // checking if the user is already in database
+  const user_exist = await User.findOne({ email: req.body.email })
+  if (user_exist) return res.status(400).send(`Email is already exist`)
+
   try {
     const user = new User(req.body)
     await user.save()
     res.status(201).send(user)
-  } catch (e) { res.status(400).send(e) }
+  } catch (e) { res.status(400).send(e.message) }
 })
 
 // getting all users

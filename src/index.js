@@ -7,7 +7,7 @@ const userRouter = require('./routers/user')
 const taskRouter = require('./routers/task')
 
 // connecting the database
-mongoose.connect(process.env.DATABASE_URL)
+mongoose.connect(process.env.DATABASE_URL, () => console.log('connected to db'))
 
 // intializing the app
 const app = express()

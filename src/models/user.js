@@ -5,7 +5,10 @@ const User = mongoose.model('User', {
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    min: 1,
+    max: 20,
+    validate: (n => { if (n !== 'string') throw new Error('invalid Name') })
   },
 
   password: {
