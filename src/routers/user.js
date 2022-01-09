@@ -30,6 +30,19 @@ router.post('/users/login', async (req, res) => {
   }
 })
 
+// logout user
+router.post('/users/logout', auth, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter(token => {
+      return token.token !== req.token
+    })
+    await req.user.save()
+    res.status(200).send('Successfully logout')
+  } catch (e) {
+    res.status(400).send(e.message)
+  }
+})
+
 // getting your profile
 router.get('/users/me', auth, async (req, res) => {
   res.status(200).send(req.user)
@@ -75,7 +88,7 @@ router.patch('/users/:id', async (req, res) => {
     await user.save()
     res.status(200).send(user)
   } catch (e) {
-    res.status(500).send(e)
+    res.status(500).send(e.message)
   }
 })
 
