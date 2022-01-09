@@ -2,6 +2,7 @@ const express = require('express')
 const router = new express.Router()
 const mongoose = require('mongoose')
 const User = require('../models/user')
+const auth = require('../middleware/auth')
 
 // creating a user
 router.post('/users', async (req, res) => {
@@ -12,18 +13,26 @@ router.post('/users', async (req, res) => {
   try {
     const user = new User(req.body)
     await user.save()
-    res.status(201).send(user)
+    const token = await user.generateAuthToken()
+    res.status(201).send({ user, token })
   } catch (e) { res.status(400).send(e.message) }
 })
 
-// getting all users
-router.get('/users', async (req, res) => {
+// login user
+router.post('/users/login', async (req, res) => {
   try {
-    const users = await User.find({})
-    res.status(200).send(users)
+    const login_user = await User.findByCredentials(req.body.email, req.body.password)
+    const token = await login_user.generateAuthToken()
+    res.send({ login_user, token })
+
   } catch (e) {
-    res.status(500).send(e)
+    res.status(400).send(e)
   }
+})
+
+// getting your profile
+router.get('/users/me', auth, async (req, res) => {
+  res.status(200).send(req.user)
 })
 
 // getting user by ID
