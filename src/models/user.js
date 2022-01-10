@@ -51,6 +51,24 @@ const userSchema = new mongoose.Schema({
   }]
 })
 
+// relationship between user and task
+userSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'owner'
+})
+
+// hidding private data
+userSchema.methods.toJSON = function () {
+  const user = this
+  const userObject = user.toObject()
+
+  delete userObject.password
+  delete userObject.tokens
+
+  return userObject
+}
+
 // authontakation user
 userSchema.methods.generateAuthToken = async function () {
   const user = this

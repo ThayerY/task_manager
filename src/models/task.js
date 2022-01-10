@@ -12,6 +12,11 @@ const Task = mongoose.model('Task', {
     trim: true,
     default: false
   },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User'
+  },
   createdAt: {
     type: Date,
     default: () => Date.now()
