@@ -3,6 +3,7 @@ const router = new express.Router()
 const mongoose = require('mongoose')
 const auth = require('../middleware/auth')
 const Task = require('../models/task')
+const User = require('../models/user')
 
 // creating a Task
 router.post('/tasks', auth, async (req, res) => {
@@ -16,76 +17,57 @@ router.post('/tasks', auth, async (req, res) => {
 })
 
 // getting all tasks
-router.get('/tasks', async (req, res) => {
+router.get('/tasks', auth, async (req, res) => {
   try {
-    const tasks = await Task.find({})
-    res.status(200).send(tasks)
+    // you could use this approach
+    // const tasks = await Task.find({ owner: req.user._id })
+    // or you could use this approach
+    await req.user.populate('tasks')
+    res.status(200).send(req.user.tasks)
   } catch (e) {
-    res.status(500).send(e)
+    res.status(500).send(e.message)
   }
 })
 
 // getting task by ID
-router.get('/tasks/:id', async (req, res) => {
+router.get('/tasks/:id', auth, async (req, res) => {
   try {
-    const _id = req.params.id
-    // checking if the id is a valid id
-    if (!mongoose.isValidObjectId(_id)) return res.status(404).send({ err: 'invalid id' })
-
-    const taskId = await Task.findById(_id)
-    if (!taskId) return res.status(404).send()
-    res.status(200).send(taskId)
+    const task = await Task.findOne({ _id: req.params.id, owner: req.user._id })
+    if (!task) return res.status(404).send()
+    res.status(200).send(task)
   } catch (e) {
-    res.status(500).send(e)
+    res.status(500).send(e.message)
   }
 })
 
 // updatting Task
-router.patch('/tasks/:id', async (req, res) => {
-  // pulling out the id
-  const _id = req.params.id
-  // checking if it is a valid id
-  if (!mongoose.isValidObjectId(_id)) return res.status(400).send({ err: `invalid id: [${_id}]` })
-
-  // pulling out the keys
+router.patch('/tasks/:id', auth, async (req, res) => {
   updates = Object.keys(req.body)
-
-  // fields that allowed to updates
   const fields_updates = ['description', 'completed']
-  // will return True if everything went right and False if something went wrong
   const validate_update = updates.every(update => fields_updates.includes(update))
-  // checking if validate_update is true
   if (!validate_update) return res.status(400).send({ msg: 'Invalid Update' })
 
   try {
-    // pulling out the id
-    const task = await Task.findById(req.params.id)
-    // iderate over the updates keys
-    updates.forEach(update => task[update] = req.body[update])
-    // checking if the task is true
+    const task = await Task.findOne({ _id: req.params.id, owner: req.user._id })
     if (!task) return res.status(400).send({ msg: 'Invalid Update' })
-    // if everything went right then we gunna save the update task
-    const save_task = await task.save()
-    res.status(200).send(save_task)
+    updates.forEach(update => task[update] = req.body[update])
+    await task.save()
+    res.status(200).send(task)
   } catch (e) {
-    res.status(500).send(e)
+    res.status(500).send(e.message)
   }
 })
 
 // Delete Task
-router.delete('/tasks/:id', async (req, res) => {
-  // pulling out the id
-  const _id = req.params.id
-  // checking if the id is a valid id
-  if (!mongoose.isValidObjectId(_id)) return res.status(400).send({ msg: `` })
+router.delete('/tasks/:id', auth, async (req, res) => {
   try {
-    const delete_task = await Task.findByIdAndDelete({ _id })
-    if (!delete_task) return res.status(400).send()
+    const delete_task = await Task.findOneAndDelete({ _id: req.params.id, owner: req.user._id })
+    if (!delete_task) return res.status(400).send(`There is no Task found`)
 
     // if everything went well
-    res.status(200).send(delete_task)
+    res.status(200).send('Deleted Successfully')
   } catch (e) {
-    res.status(500).send(e)
+    res.status(500).send(e.message)
   }
 })
 
