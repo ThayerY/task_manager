@@ -33,10 +33,6 @@ const userSchema = new mongoose.Schema({
       if (!validator.isEmail(val)) throw new Error('Email is invalid')
     })
   },
-  createdAt: {
-    type: Date,
-    default: () => Date.now()
-  },
   age: {
     type: Number,
     default: 1,
@@ -49,8 +45,9 @@ const userSchema = new mongoose.Schema({
       type: String,
       required: true
     }
-  }]
-})
+  }],
+  avatar: { type: Buffer }
+}, { timestamps: true })
 
 // this is how to connect the user with tasks
 userSchema.virtual('tasks', {
