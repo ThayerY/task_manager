@@ -85,7 +85,7 @@ router.delete('/users/me', auth, async (req, res) => {
 
 // uploading files and images
 const upload = multer({
-  limits: { fileSize: 3000000 },
+  limits: { fileSize: 4000000 },
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/.(jpg|jpeg|png)$/)) {
       return (cb(new Error('Invalid extenstion')))
@@ -95,11 +95,13 @@ const upload = multer({
 })
 router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
   try {
+    // const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+    // const buffer = await sharp(req.file.buffer).png()//.toBuffer()
     req.user.avatar = req.file.buffer
     await req.user.save()
     res.send('Successfully uploaded')
   } catch (e) {
-    res.send(e)
+    res.send(e.message)
   }
 }, (err, req, res, next) => res.status(400).send({ error: err.message }))
 
@@ -121,7 +123,7 @@ router.get('/users/:id/avatar', async (req, res) => {
     if (!user || !user.avatar) {
       throw new Error('there is no user or user avatar')
     }
-    res.set('Content-Type', 'image/jpg')
+    res.set('Content-Type', 'image/png')
     res.send(user.avatar)
   } catch (e) {
     res.status(404).send(e.message)

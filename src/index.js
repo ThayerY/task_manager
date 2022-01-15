@@ -16,14 +16,11 @@ const port = process.env.PORT || 3000
 // parsing incoming json to an object
 app.use(express.json())
 
-
-
 // register the userRouter
 app.use(userRouter)
 
 // register the taskRouter
 app.use(taskRouter)
-
 
 app.listen(port, () => console.log(`Server is up on port ${port}`))
 
